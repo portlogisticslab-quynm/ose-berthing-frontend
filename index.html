@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Berthing Energy &amp; Fender</title>
+  <meta name="description" content="Năng lượng cập tàu và chọn đệm — PIANC WG 211 (2024), OCDI 2020">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b4f6c'/%3E%3Cpath d='M7 22h18M10 22V12l6-3 6 3v10' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./css/styles.css?v=1">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32"><rect width="32" height="32" rx="7"/><path d="M7 22h18M10 22V12l6-3 6 3v10"/></svg>
+    </span>
+    <div>
+      <h1 data-i18n="title">Năng lượng cập tàu &amp; đệm tàu</h1>
+      <p class="sub" data-i18n="subtitle">PIANC WG 211 (2024) · OCDI 2020 · BS 6349-4:2026 (chờ cập nhật)</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span id="apiStatus" class="pill pill-wait" title="API"><span class="dot"></span><span id="apiStatusText">API…</span></span>
+    <div class="seg small" role="group" aria-label="Language">
+      <button type="button" data-lang="vi" class="on">VI</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+  </div>
+</header>
+
+<nav class="apptabs" role="tablist">
+  <button type="button" data-tab="ship" class="on"><span class="num">1</span><span data-i18n="tabShip">Tàu</span></button>
+  <button type="button" data-tab="cond"><span class="num">2</span><span data-i18n="tabCond">Điều kiện cập</span></button>
+  <button type="button" data-tab="energy"><span class="num">3</span><span data-i18n="tabEnergy">Năng lượng</span></button>
+  <button type="button" data-tab="fender"><span class="num">4</span><span data-i18n="tabFender">Đệm tàu</span></button>
+  <button type="button" data-tab="report"><span class="num">5</span><span data-i18n="tabReport">Báo cáo</span></button>
+</nav>
+
+<div class="alert-wrap"><div id="alert" class="alert" hidden></div></div>
+
+<!-- ============================== 1. TÀU ============================== -->
+<section class="panel" data-panel="ship">
+  <div class="cols-2">
+    <div class="stackc">
+      <div class="card">
+        <h2><span data-i18n="shipType">Loại tàu</span></h2>
+        <div class="seg wrap" id="shipTypeSeg" role="radiogroup"></div>
+        <label class="field mt"><span data-i18n="shipClass">Cấp tàu</span><select id="shipClass"></select></label>
+      </div>
+      <div class="card">
+        <h2><span data-i18n="shipData">Dữ liệu tàu</span><span id="shipSourceTag" class="tag">mooringloads</span></h2>
+        <div class="seg" id="methodSeg" role="radiogroup">
+          <button type="button" data-method="list" class="on" data-i18n="fromList">Chọn từ danh sách</button>
+          <button type="button" data-method="dwt" data-i18n="fromDwt">Tính từ DWT</button>
+        </div>
+        <div id="methodList" class="mt">
+          <label class="field"><span data-i18n="selectShip">Chọn tàu</span><select id="shipSelect"></select></label>
+        </div>
+        <div id="methodDwt" class="mt" hidden>
+          <div class="grid2">
+            <label class="field"><span data-i18n="dwt">Trọng tải DWT (t)</span><input id="dwtInput" type="number" min="1" step="100" value="50000"></label>
+            <button type="button" class="btn secondary" id="btnEstimate" data-i18n="estimate">Ước lượng kích thước</button>
+          </div>
+        </div>
+        <p class="hint" id="shipSourceInfo"></p>
+      </div>
+      <div class="card">
+        <h2><span data-i18n="loadCond">Trạng thái tải khi cập</span></h2>
+        <div class="seg" id="loadSeg" role="radiogroup">
+          <button type="button" data-load="full" class="on" data-i18n="full">Đầy tải</button>
+          <button type="button" data-load="ballast" data-i18n="ballast">Dằn (ballast)</button>
+        </div>
+        <p class="hint" id="loadHint" data-i18n="loadHintFull">Dùng lượng giãn nước và mớn nước đầy tải của tàu.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span data-i18n="dims">Kích thước tàu</span></h2>
+      <div class="grid3" id="dimsGrid">
+        <label class="field"><span>DWT (t)</span><input id="d_DWT" type="number" step="any" min="0"></label>
+        <label class="field"><span data-i18n="dispM">Lượng giãn nước M (t)</span><input id="d_M" type="number" step="any" min="0"></label>
+        <label class="field"><span>LOA (m)</span><input id="d_LOA" type="number" step="any" min="0"></label>
+        <label class="field"><span>L<sub>BP</sub> (m)</span><input id="d_LBP" type="number" step="any" min="0"></label>
+        <label class="field"><span data-i18n="beam">Bề rộng B (m)</span><input id="d_B" type="number" step="any" min="0"></label>
+        <label class="field"><span data-i18n="draft">Mớn nước T (m)</span><input id="d_T" type="number" step="any" min="0"></label>
+        <label class="field"><span data-i18n="cbSource">C<sub>b</sub> nguồn</span><input id="d_Cb" type="number" step="any" min="0" max="1"></label>
+        <label class="field"><span data-i18n="rho">ρ nước (t/m³)</span><input id="d_rho" type="number" step="0.001" value="1.025"></label>
+        <label class="field"><span data-i18n="cbCalc">C<sub>b</sub> = M/(ρ·L·B·T)</span><input id="d_CbCalc" type="text" readonly></label>
+      </div>
+      <p class="hint" data-i18n="dimsHint">Ô viền cam là giá trị đã sửa tay; báo cáo sẽ ghi lại.</p>
+      <div class="actions mt"><button type="button" class="btn primary" data-goto="cond" data-i18n="next">Tiếp: điều kiện cập →</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 2. ĐIỀU KIỆN CẬP ============================== -->
+<section class="panel" data-panel="cond" hidden>
+  <div class="cols">
+    <div class="card">
+      <h2><span data-i18n="berth">Bến và cách cập</span></h2>
+      <div class="grid2">
+        <label class="field"><span data-i18n="mode">Cách cập</span>
+          <select id="c_mode">
+            <option value="alongside" data-i18n="modeAlong">Cập dọc bến</option>
+            <option value="end_bow" data-i18n="modeBow">Cập mũi vào (end, bow first)</option>
+            <option value="end_stern_designed" data-i18n="modeSternD">Cập đuôi vào (tàu thiết kế cập đuôi)</option>
+            <option value="end_stern" data-i18n="modeStern">Cập đuôi vào (tàu thường)</option>
+          </select></label>
+        <label class="field"><span data-i18n="depth">Độ sâu nước tại bến (m)</span><input id="c_depth" type="number" step="any" min="0"></label>
+        <label class="field"><span data-i18n="pitch">Khoảng cách đệm (m)</span><input id="c_pitch" type="number" step="any" min="0"></label>
+      </div>
+      <p class="hint" data-i18n="depthHint">Độ sâu dùng để tính khe nước dưới đáy U<sub>c</sub> = độ sâu − T (PIANC Hình 5.7).</p>
+      <h2 class="mt"><span data-i18n="standards">Tiêu chuẩn tính</span></h2>
+      <label class="check"><input type="checkbox" id="s_pianc" checked> PIANC WG 211 (2024)</label>
+      <label class="check"><input type="checkbox" id="s_ocdi" checked> OCDI 2020</label>
+      <label class="check"><input type="checkbox" id="s_bs" disabled> BS 6349-4:2026 <span class="badge warn" data-i18n="pending">chờ bản tiêu chuẩn</span></label>
+    </div>
+
+    <div class="card">
+      <h2>PIANC 2024 <span class="badge info">5.2–5.8</span></h2>
+      <div class="grid2">
+        <label class="field"><span data-i18n="nav">Điều kiện hàng hải</span>
+          <select id="p_nav"><option value="favourable" data-i18n="favourable">Thuận lợi</option><option value="moderate" selected data-i18n="moderate">Trung bình</option><option value="unfavourable" data-i18n="unfavourable">Bất lợi</option></select></label>
+        <label class="field"><span data-i18n="cc">Lớp hậu quả</span>
+          <select id="p_cc"><option>A</option><option selected>B</option><option>C</option><option>D</option></select></label>
+        <label class="field"><span data-i18n="cov">Biến động lượng giãn nước CoV<sub>M</sub></span>
+          <select id="p_cov"><option value="low" data-i18n="covLow">Thấp (&lt; 15 %)</option><option value="moderate" data-i18n="covMod">Trung bình (15–50 %)</option><option value="high" data-i18n="covHigh">Cao (≥ 50 %)</option></select></label>
+        <label class="field"><span data-i18n="contact">Số đệm tiếp xúc</span>
+          <select id="p_contact"><option value="single" data-i18n="single">Một đệm</option><option value="multiple" data-i18n="multiple">Nhiều đệm</option></select></label>
+        <label class="field"><span data-i18n="nBerth">Số lần cập/năm</span><input id="p_n" type="number" min="1" step="1" value="100"></label>
+        <label class="field"><span data-i18n="manoeuvre">Cách tiếp cận</span>
+          <select id="p_man"><option value="parallel" data-i18n="parallel">Song song</option><option value="angular" data-i18n="angular">Nghiêng góc</option></select></label>
+      </div>
+      <div class="grid3 mt-s">
+        <label class="check"><input type="checkbox" id="p_tugs" checked><span data-i18n="tugs">Có tàu lai</span></label>
+        <label class="check"><input type="checkbox" id="p_thr" checked><span data-i18n="thrusters">Có chân vịt mũi</span></label>
+        <label class="check"><input type="checkbox" id="p_pilot" checked><span data-i18n="pilot">Có hoa tiêu</span></label>
+        <label class="check"><input type="checkbox" id="p_mon"><span data-i18n="monitored">Có hệ thống đo vận tốc cập</span></label>
+      </div>
+      <details class="box mt">
+        <summary data-i18n="overrides">Nhập tay (để trống = theo bảng)</summary>
+        <div class="grid3 mt-s">
+          <label class="field"><span data-i18n="vManual">V<sub>c</sub> (m/s)</span><input id="p_v" type="number" step="0.005" min="0"></label>
+          <label class="field"><span data-i18n="aManual">α<sub>c</sub> (°)</span><input id="p_a" type="number" step="0.5" min="0"></label>
+          <label class="field"><span data-i18n="xF">Điểm va x<sub>F</sub>/L<sub>BP</sub></span>
+            <select id="p_xf"><option value="0.2">0,20</option><option value="0.25" selected>0,25</option><option value="0.333">0,33</option><option value="0.5">0,50</option></select></label>
+          <label class="field"><span>y<sub>F</sub> (m)</span><input id="p_yf" type="number" step="any" min="0" placeholder="B/2"></label>
+          <label class="field"><span>C<sub>m</sub></span><input id="p_cm" type="number" step="0.01" min="1"></label>
+          <label class="field"><span>γ<sub>c</sub></span><input id="p_gc" type="number" step="0.05" min="0.1" max="1" value="1"></label>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>OCDI 2020 <span class="badge info">II-8 2.2</span></h2>
+      <div class="grid2">
+        <label class="field"><span data-i18n="ocdiV">V<sub>b</sub> (m/s)</span><input id="o_v" type="number" step="0.005" min="0" placeholder="= V PIANC"></label>
+        <label class="field"><span data-i18n="ocdiTheta">Góc cập θ (°)</span><input id="o_t" type="number" step="0.5" min="0" placeholder="= α PIANC"></label>
+        <label class="field"><span data-i18n="alphaPs">Thân song song α (/L<sub>pp</sub>)</span>
+          <select id="o_aps"><option value="" data-i18n="auto">Tự động</option><option value="0.333">1/3</option><option value="0.5">1/2</option></select></label>
+        <label class="field"><span>k</span><input id="o_k" type="number" step="0.05" min="0.05" max="0.95" value="0.5"></label>
+        <label class="field"><span>C<sub>s</sub></span><input id="o_cs" type="number" step="0.05" min="0.1" max="1" value="1"></label>
+        <label class="field"><span>C<sub>c</sub></span><input id="o_cc" type="number" step="0.05" min="0.1" max="1" value="1"></label>
+      </div>
+      <p class="hint" data-i18n="ocdiHint">OCDI không cho bảng vận tốc: tàu lớn có lai dắt thường 0,10–0,15 m/s; tàu nhỏ tự cập có thể vượt 0,30 m/s. Để trống sẽ dùng V của PIANC.</p>
+      <div class="actions mt"><button type="button" class="btn primary" id="btnEnergy" data-i18n="calcEnergy">Tính năng lượng cập tàu</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 3. NĂNG LƯỢNG ============================== -->
+<section class="panel" data-panel="energy" hidden>
+  <div id="energyEmpty" class="card empty-state" data-i18n="energyEmpty">Chưa có kết quả — nhập dữ liệu ở bước 1–2 rồi bấm “Tính năng lượng cập tàu”.</div>
+  <div id="energyOut" hidden>
+    <div class="kpis k4" id="energyKpis"></div>
+    <div id="energyWarn" class="notice mt" hidden></div>
+    <div class="cols mt">
+      <div class="card"><h2>PIANC WG 211 (2024)</h2><div id="piancTable"></div><details class="coef"><summary data-i18n="showSteps">Các bước tính</summary><pre class="steps" id="piancSteps"></pre></details></div>
+      <div class="card"><h2>OCDI 2020</h2><div id="ocdiTable"></div><details class="coef"><summary data-i18n="showSteps">Các bước tính</summary><pre class="steps" id="ocdiSteps"></pre></details></div>
+    </div>
+    <div class="card mt">
+      <div class="row-between"><h2 data-i18n="sweepTitle">Độ nhạy theo vận tốc cập</h2>
+        <button type="button" class="btn secondary small" id="btnSweep" data-i18n="sweep">Quét V ± 40 %</button></div>
+      <div id="sweepChart"></div>
+    </div>
+    <div class="actions mt"><button type="button" class="btn primary" data-goto="fender" data-i18n="toFender">Tiếp: chọn đệm →</button></div>
+  </div>
+</section>
+
+<!-- ============================== 4. ĐỆM ============================== -->
+<section class="panel" data-panel="fender" hidden>
+  <div class="cols-2">
+    <div class="stackc">
+      <div class="card">
+        <h2><span data-i18n="fCond">Điều kiện chọn đệm</span></h2>
+        <div class="grid2">
+          <label class="field"><span data-i18n="fStd">Kiểm tra theo</span>
+            <select id="f_std"><option value="PIANC2024">PIANC 2024</option><option value="OCDI2020">OCDI 2020</option></select></label>
+          <label class="field"><span data-i18n="fE">Năng lượng cần hấp thụ (kNm)</span><input id="f_E" type="number" step="any" min="0"></label>
+          <label class="field"><span data-i18n="fV">Vận tốc cập (m/s)</span><input id="f_V" type="number" step="0.005" min="0"></label>
+          <label class="field"><span data-i18n="fAng">Góc nén đệm (°)</span><input id="f_ang" type="number" step="0.5" min="0" max="20"></label>
+          <label class="field"><span data-i18n="fTh">Nhiệt độ cao (°C)</span><input id="f_Th" type="number" step="1" value="35"></label>
+          <label class="field"><span data-i18n="fTl">Nhiệt độ thấp (°C)</span><input id="f_Tl" type="number" step="1" value="10"></label>
+          <label class="field"><span data-i18n="fMult">C<sub>mult</sub> (nhiều đệm)</span><input id="f_cm" type="number" step="0.1" min="1" max="3" value="1"></label>
+          <label class="field"><span data-i18n="fRallow">R cho phép kết cấu (kN)</span><input id="f_R" type="number" step="any" min="0"></label>
+          <label class="field"><span data-i18n="fPhull">Áp lực vỏ tàu cho phép (kN/m²)</span><input id="f_p" type="number" step="10" min="0"></label>
+          <label class="field"><span data-i18n="fPanel">Diện tích tấm chắn (m²)</span><input id="f_A" type="number" step="any" min="0"></label>
+        </div>
+        <p class="hint" id="fHint"></p>
+        <h2 class="mt"><span data-i18n="fFilter">Hãng và loại đệm</span></h2>
+        <div id="mfrChecks" class="grid2"></div>
+        <div class="grid2 mt-s">
+          <label class="check"><input type="checkbox" id="t_cone" checked><span data-i18n="cone">Đệm nón (cone)</span></label>
+          <label class="check"><input type="checkbox" id="t_cell" checked><span data-i18n="cell">Đệm trụ (cell)</span></label>
+        </div>
+        <div class="actions mt"><button type="button" class="btn primary" id="btnSelect" data-i18n="select">Chọn đệm</button></div>
+      </div>
+      <details class="card box">
+        <summary data-i18n="custom">Đệm tự nhập (đường cong riêng)</summary>
+        <div class="grid2 mt-s">
+          <label class="field"><span data-i18n="cName">Tên</span><input id="cu_name" value="Đệm tự nhập"></label>
+          <label class="field"><span>H (mm)</span><input id="cu_H" type="number" min="1"></label>
+          <label class="field"><span>E (kNm)</span><input id="cu_E" type="number" min="0" step="any"></label>
+          <label class="field"><span>R (kN)</span><input id="cu_R" type="number" min="0" step="any"></label>
+          <label class="field"><span data-i18n="cRated">Độ nén định mức (%)</span><input id="cu_rd" type="number" min="5" max="90" step="any"></label>
+          <label class="field"><span data-i18n="cTol">Dung sai (%)</span><input id="cu_tol" type="number" value="10" min="0" max="30"></label>
+        </div>
+        <label class="field mt-s"><span data-i18n="cCurve">Đường cong: mỗi dòng “δ%, E%, R%”</span>
+          <textarea id="cu_curve" rows="6" style="font:12px ui-monospace,monospace;width:100%;border:1px solid var(--border);border-radius:7px;padding:6px;background:var(--surface);color:var(--text)">0, 0, 0
+25, 30, 90
+50, 100, 100</textarea></label>
+        <div class="actions mt-s"><button type="button" class="btn secondary" id="btnCustom" data-i18n="checkCustom">Kiểm tra đệm tự nhập</button></div>
+      </details>
+    </div>
+    <div class="stackc">
+      <div class="card">
+        <div class="row-between"><h2 data-i18n="candidates">Phương án đạt</h2><span id="selSummary" class="muted small"></span></div>
+        <div class="table-wrap"><table class="res" id="candTable"><thead><tr>
+          <th></th><th data-i18n="hFender">Đệm</th><th data-i18n="hGrade">Cấp</th><th>E<sub>cap</sub> (kNm)</th><th data-i18n="hUtil">Tỉ lệ dùng</th><th>R<sub>d</sub> (kN)</th><th>δ (%)</th><th>A<sub>panel</sub> (m²)</th>
+        </tr></thead><tbody><tr><td colspan="8" class="empty" data-i18n="noCand">Bấm “Chọn đệm”.</td></tr></tbody></table></div>
+        <div class="actions mt-s"><button type="button" class="btn secondary small" id="btnCompare" disabled data-i18n="compare">So sánh đệm đã đánh dấu</button></div>
+      </div>
+      <div class="card" id="detailCard" hidden>
+        <div class="row-between"><h2 id="detailTitle"></h2><span id="detailBadge"></span></div>
+        <div class="kpis k4" id="detailKpis"></div>
+        <div class="charts mt" id="detailCharts"></div>
+        <div class="cols mt">
+          <div><h2 data-i18n="factors">Hệ số hiệu chỉnh</h2><table class="kv" id="detailFactors"></table></div>
+          <div>
+            <h2 data-i18n="pitchTitle">Khoảng cách đệm tối đa (PIANC 6.4.3)</h2>
+            <div class="grid2">
+              <label class="field"><span>L<sub>bow,F</sub> (m)</span><input id="pc_Lbow" type="number" step="any" min="0"></label>
+              <label class="field"><span data-i18n="loaMin">LOA tàu nhỏ nhất (m)</span><input id="pc_LOAmin" type="number" step="any" min="0"></label>
+              <label class="field"><span data-i18n="panelT">Dày tấm chắn (m)</span><input id="pc_tp" type="number" step="0.05" min="0" value="0.3"></label>
+              <label class="field"><span>d·tanβ (m)</span><input id="pc_db" type="number" step="0.05" min="0" value="0"></label>
+            </div>
+            <div class="actions mt-s"><button type="button" class="btn secondary small" id="btnPitch" data-i18n="recalc">Tính lại</button></div>
+            <table class="kv mt-s" id="pitchTable"></table>
+          </div>
+        </div>
+        <p class="hint" id="detailSource"></p>
+      </div>
+      <div class="card" id="compareCard" hidden>
+        <h2 data-i18n="compareTitle">So sánh đệm</h2>
+        <div class="table-wrap"><table class="res" id="compareTable"></table></div>
+        <div class="charts mt" id="compareCharts"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 5. BÁO CÁO ============================== -->
+<section class="panel" data-panel="report" hidden>
+  <div class="card no-print">
+    <div class="grid3">
+      <label class="field"><span data-i18n="project">Tên dự án / bến</span><input id="r_project" maxlength="120"></label>
+      <button type="button" class="btn primary" id="btnReport" data-i18n="makeReport">Lập báo cáo</button>
+      <div class="row-gap">
+        <button type="button" class="btn secondary" id="btnPrint" disabled data-i18n="print">In / PDF</button>
+        <button type="button" class="btn secondary" id="btnCsv" disabled>CSV</button>
+        <button type="button" class="btn secondary" id="btnJson" disabled data-i18n="saveInput">Lưu đầu vào (JSON)</button>
+      </div>
+    </div>
+  </div>
+  <div class="card report mt" id="reportOut"><div class="empty-state" data-i18n="reportEmpty">Chưa có báo cáo.</div></div>
+</section>
+
+<footer class="foot">
+  <span>© 2026 <a href="https://portlogistics.vn" target="_blank" rel="noopener">portlogistics.vn</a></span>
+  <span data-i18n="footNote">Số liệu tiêu chuẩn và catalogue trích từ tài liệu người dùng cung cấp, chờ kỹ sư đối chiếu. Dùng cho thiết kế sơ bộ.</span>
+</footer>
+<div id="toast" class="toast" hidden></div>
+
+<script src="./js/config.js?v=1"></script>
+<script src="./js/i18n.js?v=1"></script>
+<script src="./js/charts.js?v=1"></script>
+<script src="./js/app.js?v=1"></script>
+</body>
+</html>
