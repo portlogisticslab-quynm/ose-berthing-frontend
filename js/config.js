@@ -17,7 +17,8 @@
   function recalled() {
     try {
       const c = JSON.parse(sessionStorage.getItem(CACHE_KEY));
-      if (c && BACKENDS[c.name] && Date.now() - c.t < CACHE_MS) return c.name;
+      const ttl = c && c.name === "render" ? 60 * 1000 : CACHE_MS; // Render chỉ nhớ 1 phút, rồi thử lại home
+      if (c && BACKENDS[c.name] && Date.now() - c.t < ttl) return c.name;
     } catch (e) {}
     return null;
   }
@@ -44,7 +45,7 @@
     if (cached) return Promise.resolve(set(BACKENDS[cached]));
     set(BACKENDS.home);
     return (async () => {
-      if (await alive(BACKENDS.home, 4000)) { remember("home"); return BACKENDS.home; }
+      if (await alive(BACKENDS.home, 8000)) { remember("home"); return BACKENDS.home; }
       console.warn("[OSE] Máy chủ chính không phản hồi, chuyển sang Render");
       remember("render");
       return set(BACKENDS.render);
